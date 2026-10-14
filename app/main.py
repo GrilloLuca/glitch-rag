@@ -1,8 +1,8 @@
-from fastapi import Depends, FastAPI, HTTPException
-from pydantic import BaseModel
-
 from contextlib import asynccontextmanager
 from typing import Annotated
+
+from fastapi import Depends, FastAPI, HTTPException
+from pydantic import BaseModel
 
 from app.config import Settings, get_settings
 
