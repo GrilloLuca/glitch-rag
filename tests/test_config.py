@@ -1,3 +1,5 @@
+from idlelib.iomenu import errors
+
 import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
@@ -29,3 +31,19 @@ def test_info_does_not_expose_api_key():
         assert "super-secret-test-key" not in response.text
     finally:
         app.dependency_overrides.clear()
+
+
+def test_log_level_verbose_rejected():
+    with pytest.raises(ValidationError) as exc_info:
+        Settings(llm_api_key="x", log_level="VERBOSE", _env_file=None)
+
+    print("----------- LOG ERROR -----------")
+    _errors = exc_info.value.errors()
+    print(_errors)
+    assert _errors[0]["loc"] == ("log_level",)
+
+
+@pytest.mark.parametrize("level", ["DEBUG", "INFO", "WARNING", "ERROR"])
+def test_log_level_accepts_valid_values(level):
+    settings = Settings(llm_api_key="x", log_level=level, _env_file=None)
+    assert settings.log_level == level

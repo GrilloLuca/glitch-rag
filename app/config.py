@@ -1,4 +1,7 @@
+import enum
+import typing
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -12,6 +15,7 @@ class Settings(BaseSettings):
     llm_model: str = "qwen2.5:1.5b"
     llm_api_key: SecretStr
     llm_timeout_seconds: float = Field(default=30.0, gt=0)
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
 
 
 @lru_cache
