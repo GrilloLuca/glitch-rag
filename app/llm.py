@@ -34,7 +34,7 @@ class LLMClient:
     def model(self) -> str:
         return self._model
 
-    async def chat(self, message, str) -> str:
+    async def chat(self, message: str) -> str:
         try:
             response = await self._client.chat.completions.create(
                 model=self.model,
@@ -54,4 +54,4 @@ class LLMClient:
 
 
     async def close(self) -> None:
-        await self.close()
+        await self._client.close()

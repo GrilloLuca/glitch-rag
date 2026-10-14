@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.config import Settings, get_settings
 from app.llm import LLMClient, LLMError, LLMTimeoutError, LLMUnavailableError
@@ -35,8 +35,7 @@ class AppInfo(BaseModel):
 
 
 class ChatRequest(BaseModel):
-    app_name: str
-    model: str
+    message: str = Field(min_length=1, max_length=4000)
 
 
 class ChatResponse(BaseModel):
