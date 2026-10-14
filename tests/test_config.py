@@ -1,5 +1,3 @@
-from idlelib.iomenu import errors
-
 import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
