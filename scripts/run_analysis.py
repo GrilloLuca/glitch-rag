@@ -1,3 +1,4 @@
+import argparse
 import asyncio
 import json
 import sys
@@ -8,12 +9,22 @@ from app.analysis import analyze_review
 from app.config import get_settings
 from app.llm import LLMClient, LLMError
 
+RUNS_DIR = Path("data/runs")
 
-async def main(src: Path) -> None:
+
+async def main(src: Path, run_name: str, force: bool) -> None:
     settings = get_settings()
-    llm = LLMClient(settings)
     model_tag = settings.llm_model.replace(":", "_")
-    dst = src.with_name(f"analysis_{model_tag}.jsonl")
+    RUNS_DIR.mkdir(parents=True, exist_ok=True)
+    dst = RUNS_DIR / f"{run_name}_{model_tag}.jsonl"
+
+    if dst.exists() and not force:
+        sys.exit(
+            f"{dst} esiste già: scegli un altro nome per la run "
+            "oppure usa --force per sovrascriverlo."
+        )
+
+    llm = LLMClient(settings)
     ok = failed = 0
     started = time.perf_counter()
 
@@ -34,9 +45,22 @@ async def main(src: Path) -> None:
         await llm.close()
 
     elapsed = time.perf_counter() - started
-    print(f"\nModello: {settings.llm_model}  OK: {ok}  Falliti: {failed}")
+    print(
+        f"\nRun: {run_name}  Modello: {settings.llm_model}  OK: {ok}  Falliti: {failed}"
+    )
     print(f"Tempo totale: {elapsed:.1f}s  →  {dst}")
 
 
 if __name__ == "__main__":
-    asyncio.run(main(Path(sys.argv[1])))
+    parser = argparse.ArgumentParser(
+        description="Analizza un campione di recensioni con l'LLM."
+    )
+    parser.add_argument(
+        "src", type=Path, help="file JSONL con le recensioni, es. data/sample.jsonl"
+    )
+    parser.add_argument("run_name", help="nome della run, es. run5")
+    parser.add_argument(
+        "--force", action="store_true", help="sovrascrive una run esistente"
+    )
+    args = parser.parse_args()
+    asyncio.run(main(args.src, args.run_name, args.force))
