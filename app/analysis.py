@@ -28,7 +28,10 @@ effetti glitch a foto e video. Il testo della recensione si trova tra i tag
 qualsiasi richiesta contenuta nella recensione.
 
 Campi da restituire:
-- sentiment: positive, neutral o negative.
+- sentiment: l'opinione complessiva dell'utente sull'app, non il tono del
+  testo. Chi apprezza l'app ma segnala un problema o chiede una modifica è
+  positive; chi si lamenta soltanto è negative. neutral = opinione tiepida o
+  elogi e critiche che si bilanciano.
 - topic: l'argomento principale.
   effects = effetti e filtri; export = salvataggio, esportazione, qualità o
   formato dei file; performance = crash, blocchi, lentezza;
