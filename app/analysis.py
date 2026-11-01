@@ -39,7 +39,8 @@ Campi da restituire:
   facilità d'uso; other = tutto il resto.
 - is_bug_report: true solo se l'utente descrive qualcosa che non funziona come
   dovrebbe (crash, errore, funzione che non risponde, file corrotto). Una
-  lamentela su prezzi o pubblicità non è un bug.
+  lamentela su prezzi o pubblicità non è un bug mentre un file salvato diverso dall’anteprima, 
+  o di qualità inferiore, è un bug
 - summary: una frase in italiano, al massimo 200 caratteri.
 """
 
