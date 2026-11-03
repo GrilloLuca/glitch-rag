@@ -49,6 +49,7 @@ class LLMClient:
             timeout=settings.llm_timeout_seconds,
             max_retries=1,
         )
+        self._embedding_model = settings.embedding_model
 
     @property
     def model(self) -> str:
@@ -99,6 +100,13 @@ class LLMClient:
                         yield chunk.choices[0].delta.content
             finally:
                 await stream.close()
+
+    async def embed(self, texts: list[str]) -> list[list[float]]:
+        with translate_errors():
+            response = await self._client.embeddings.create(
+                model=self._embedding_model, input=texts
+            )
+        return [item.embedding for item in sorted(response.data, key=lambda d: d.index)]
 
     async def close(self) -> None:
         await self._client.close()

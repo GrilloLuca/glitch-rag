@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     llm_api_key: SecretStr
     llm_timeout_seconds: float = Field(default=30.0, gt=0)
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
+    embedding_model: str = "bge-m3"
+    embedding_batch_size: int = Field(default=32, gt=0)
 
 
 @lru_cache
