@@ -1,8 +1,10 @@
+import json
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.analysis import ReviewAnalysis, analyze_review
@@ -100,6 +102,36 @@ async def chat(
 ) -> ChatResponse:
     answer = await llm.chat(body.message)
     return ChatResponse(answer=answer, model=llm.model)
+
+
+def sse_event(event: str, data: dict) -> str:
+    return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+
+@app.post("/chat/stream")
+async def chat_stream(
+    body: ChatRequest,
+    llm: Annotated[LLMClient, Depends(get_llm)],
+) -> StreamingResponse:
+    tokens = llm.chat_stream(body.message)
+    first_token = await anext(tokens, None)
+
+    async def events() -> AsyncIterator[str]:
+        if first_token is not None:
+            yield sse_event("token", {"text": first_token})
+        try:
+            async for token in tokens:
+                yield sse_event("token", {"text": token})
+        except LLMError:
+            yield sse_event("error", {"detail": "LLM stream interrupted"})
+            return
+        yield sse_event("done", {"model": llm.model})
+
+    return StreamingResponse(
+        events(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache"},
+    )
 
 
 class AnalyzeRequest(BaseModel):
