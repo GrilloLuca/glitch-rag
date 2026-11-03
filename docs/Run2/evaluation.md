@@ -1,6 +1,6 @@
 # Run 2 – Explicit sentiment definition (2026-10-30)
 
-Setup as in [Run 1](../evaluation.md): same 20 reviews, same golden set,
+Setup as in [Run 1](../Run1/evaluation.md): same 20 reviews, same golden set,
 `qwen2.5:7b`, `temperature=0`. Only qwen2.5:7b was re-run.
 
 ## Change

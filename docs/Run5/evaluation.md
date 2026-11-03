@@ -1,6 +1,6 @@
 # Run 5 – Export definition covers "effect not saved correctly" (2026-10-30)
 
-Setup as in [Run 1](../evaluation.md): same 20 reviews, same golden set,
+Setup as in [Run 1](../Run1/evaluation.md): same 20 reviews, same golden set,
 `qwen2.5:7b`, `temperature=0`. Compared against [Run 4](../Run4/evaluation.md),
 the best run so far. Answers in `data/runs/run5_qwen2.5_7b.jsonl`.
 

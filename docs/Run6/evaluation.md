@@ -1,6 +1,6 @@
 # Run 6 – Explicit bug definition for saved-file issues (2026-10-30)
 
-Setup as in [Run 1](../evaluation.md): same 20 reviews, same golden set,
+Setup as in [Run 1](../Run1/evaluation.md): same 20 reviews, same golden set,
 `qwen2.5:7b`, `temperature=0`. Compared against [Run 4](../Run4/evaluation.md).
 Answers in `data/runs/run6_qwen2.5_7b.jsonl`.
 
