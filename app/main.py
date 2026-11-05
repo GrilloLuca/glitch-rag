@@ -16,12 +16,18 @@ from app.llm import (
     LLMTimeoutError,
     LLMUnavailableError,
 )
+from app.rag import AskRequest, AskResponse, answer_question
+from app.search import ReviewSearch
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     settings = get_settings()
     app.state.llm = LLMClient(settings)
+    try:
+        app.state.search = ReviewSearch.load(settings.index_dir)
+    except FileNotFoundError:
+        app.state.search = None
     yield
     await app.state.llm.close()
 
@@ -43,6 +49,13 @@ async def handle_llm_error(request: Request, exc: LLMError) -> JSONResponse:
 
 def get_llm(request: Request) -> LLMClient:
     return request.app.state.llm
+
+
+def get_search(request: Request) -> ReviewSearch:
+    search = getattr(request.app.state, "search", None)
+    if search is None:
+        raise HTTPException(status_code=503, detail="Search index not built")
+    return search
 
 
 # --- Modelli ---
@@ -144,3 +157,12 @@ async def analyze(
     body: AnalyzeRequest, llm: Annotated[LLMClient, Depends(get_llm)]
 ) -> ReviewAnalysis:
     return await analyze_review(llm, body.text)
+
+
+@app.post("/ask")
+async def ask(
+    body: AskRequest,
+    llm: Annotated[LLMClient, Depends(get_llm)],
+    search: Annotated[ReviewSearch, Depends(get_search)],
+) -> AskResponse:
+    return await answer_question(llm, search, body)

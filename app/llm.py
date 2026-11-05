@@ -110,3 +110,14 @@ class LLMClient:
 
     async def close(self) -> None:
         await self._client.close()
+
+    async def complete_text(
+        self, system_prompt: str, user_content: str, temperature: float = 0.2
+    ) -> str:
+        return await self._complete(
+            [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_content},
+            ],
+            temperature=temperature,
+        )

@@ -1,4 +1,5 @@
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
 from pydantic import Field, SecretStr
@@ -16,6 +17,7 @@ class Settings(BaseSettings):
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
     embedding_model: str = "bge-m3"
     embedding_batch_size: int = Field(default=32, gt=0)
+    index_dir: Path = Path("data/index")
 
 
 @lru_cache
