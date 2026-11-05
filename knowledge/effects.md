@@ -9,17 +9,17 @@
 - **Access:** Premium
 - **Works on video:** Yes
 - **How to use:** Touch the screen.
-- **Description:** A real PNG glitch with five filtering algorithm types: None, Sub, Up, Average and Paeth.
+- **Description:** A real PNG format glitch with five filtering algorithm types: None, Sub, Up, Average and Paeth.
 
 ## WEBP
 - **Access:** Free
 - **Works on video:** Yes
-- **How to use:** Touch the screen.
+- **How to use:** A real WEBP format glitch. touch the screen anywhere to apply the effect. the glitch always appear vertically from bottom to top.
 
 ## Paintbrush
 - **Access:** Free
 - **Works on video:** Yes
-- **How to use:** Touch the screen and move your finger.
+- **How to use:** Touch the screen, keep pressed and move your finger to add glitches.
 
 ## Field
 - **Access:** Premium
@@ -30,53 +30,53 @@
 ## Hacker
 - **Access:** Free
 - **Works on video:** No
-- **How to use:** Hack the screen by touching it several times.
+- **How to use:** Hack the screen by scrambling pixels by touching it several times.
 
 ## Wave
 - **Access:** Free
 - **Works on video:** No
-- **How to use:** Swipe left, right, up and down.
+- **How to use:** Swipe left, right, up and down to apply effect.
 
 ## Triangle
 - **Access:** Free
 - **Works on video:** No
-- **How to use:** Touch everything you want to affect.
+- **How to use:** Touch everything for copy and paste small triangle portions of the image. use the slider for change size.
 
 ## Delaunay
 - **Access:** Premium
 - **Works on video:** No
-- **How to use:** Add more points to split the triangles.
+- **How to use:** touch the screen to add interpolation points.
 - **Description:** Based on Boris Delaunay's 1934 algorithm.
 
 ## Drone
 - **Access:** Free
 - **Works on video:** No
-- **How to use:** Touch the screen several times.
+- **How to use:** Touch the screen, keep pressed and move your finger.
 
 ## Pixel
 - **Access:** Free
 - **Works on video:** Yes
-- **How to use:** Touch or tap the screen.
+- **How to use:** Touch the screen, keep pressed and move your finger.
 
 ## Deep-Fried
 - **Access:** Free
 - **Works on video:** Yes
-- **How to use:** Drag to deep-fry the image.
+- **How to use:** Drag to deep-fry the image. use JPEG crunch to degrade the quality.
 
 ## XOR
 - **Access:** Free
 - **Works on video:** Yes
-- **How to use:** Touch slowly to slice the image.
+- **How to use:** Touch the screen, keep pressed to slice the image.
 
 ## Scanner
 - **Access:** Free
 - **Works on video:** Yes
-- **How to use:** Drag and drop.
+- **How to use:** Touch the screen, keep pressed and move the finger.
 
 ## Window
 - **Access:** Free
 - **Works on video:** No
-- **How to use:** Drag and drop.
+- **How to use:** Touch the screen, keep pressed and move the finger for copy and paste part of the image.
 
 ## Pixel Sort
 - **Access:** Premium
@@ -87,12 +87,12 @@
 ## Burn
 - **Access:** Free
 - **Works on video:** No
-- **How to use:** Burn the pixels with your finger.
+- **How to use:** Touch the screen, keep pressed and move the finger to Burn the pixels with your finger.
 
 ## Quake
 - **Access:** Free
 - **Works on video:** Yes
-- **How to use:** Slowly keep the screen pressed.
+- **How to use:** keep the finger pressed and slowly move for distort image.
 
 ## Warp
 - **Access:** Premium
@@ -104,7 +104,7 @@
 - **Access:** Premium
 - **Works on video:** Yes
 - **How to use:** Touch the screen to shift colors.
-- **Description:** Shifts the RGB colors of the picture.
+- **Description:** touch the image and move to shift the colors of the picture.
 
 ## VHS
 - **Access:** Free

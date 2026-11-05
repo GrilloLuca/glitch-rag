@@ -28,6 +28,12 @@ async def lifespan(app: FastAPI):
         app.state.search = ReviewSearch.load(settings.index_dir)
     except FileNotFoundError:
         app.state.search = None
+    try:
+        app.state.docs_search = ReviewSearch.load(
+            settings.docs_index_dir, records="chunks.jsonl"
+        )
+    except FileNotFoundError:
+        app.state.docs_search = None
     yield
     await app.state.llm.close()
 
@@ -57,6 +63,8 @@ def get_search(request: Request) -> ReviewSearch:
         raise HTTPException(status_code=503, detail="Search index not built")
     return search
 
+def get_docs_search(request: Request) -> ReviewSearch | None:
+    return getattr(request.app.state, "docs_search", None)
 
 # --- Modelli ---
 
@@ -164,5 +172,6 @@ async def ask(
     body: AskRequest,
     llm: Annotated[LLMClient, Depends(get_llm)],
     search: Annotated[ReviewSearch, Depends(get_search)],
+    docs_search: Annotated[ReviewSearch | None, Depends(get_docs_search)],
 ) -> AskResponse:
-    return await answer_question(llm, search, body)
+    return await answer_question(llm, search, docs_search, body)

@@ -61,3 +61,67 @@ One change at a time, measured on these six questions:
 2. Prompt: "use every relevant review and group the information by theme".
 3. Metadata filter on `app_version` and on date for recent questions.
 4. Keyword and hybrid retrieval on the same questions (`"mode"` in the request).
+
+---
+
+# Run 2 – Documentation as a second source (2026-11-05)
+
+The knowledge base in `knowledge/` (FAQ, effects, store description) is split by heading
+into 44 chunks (`app/chunking.py`), embedded with the section path, and searched next to
+the reviews. The prompt separates `<documentation>` (official: how the app works) from
+`<reviews>` (user experiences) and asks to state disagreements between them.
+
+- **Retrieval**: semantic, top 3 documentation chunks + top 5 reviews.
+- **Generation**: `qwen2.5:7b`, `temperature=0` (Run 1 used 0.2: a second variable changed).
+
+## The six questions of Run 1
+
+| Question | Run 1 (reviews only) | Run 2 (+ documentation) | |
+|---|---|---|---|
+| Export in HD | "Not in the reviews" | Correct answer from the FAQ, 4/4 claims faithful; omits that both tools are premium | Much better |
+| Problems with datamosh | 3 of 5 reviews used | 5 of 5, grouped by kind of problem; does not say the documentation confirms it is premium | Better |
+| What users think of ads | 1 of 5 reviews used | 3 of 5, but reads "ads are annoying" as positive and concludes users are "divided" when all five complain | Not faithful |
+| App freezes when saving a video | Two reviews merged into one claim | Three reviews merged into a claim only one of them makes | Not faithful |
+| How to change my password | Declined | Declined, suggests contacting support | Same |
+| Version 4.1.13 | Declined | Declined | Same |
+
+## Four questions for the documentation
+
+| Question | Top documentation chunk | Answer | Faithful? |
+|---|---|---|---|
+| Where are videos saved? | FAQ "Where are my photos and videos saved?" (1st) | `Movies/ImageGlitcher`, also in the gallery | Yes |
+| What does premium include? | FAQ "What does the premium version include?" (1st) | All premium effects and higher photo resolutions; omits the list of premium effects and the plans | Yes, incomplete |
+| Is Datamosh free? | Effects "Datamosh: Access: Premium" (1st) | "No, it requires premium" (2 documentation chunks) and "some users asked for it to be free" (4 reviews) | Yes: the best answer of the run |
+| Which formats can I export? | FAQ on HD export (1st), FAQ on formats (2nd) | JPG for photos; MP4, GIF "or Datamosh" for videos: Datamosh is an effect, not a format | No, one error |
+
+## Totals
+
+| | Run 1 (6 questions) | Run 2 (10 questions) |
+|---|---:|---:|
+| Fabricated citation ids | 0 | 0 |
+| Unanswerable questions correctly declined | 3/3 | 2/2 |
+| Answers fully faithful | 3/6 (export, password, version) | 7/10 |
+| Right documentation chunk ranked 1st or 2nd | – | 5/5 |
+
+## Findings
+
+- **Documentation solves "how do I" questions**: export, save location, premium, formats.
+  The right chunk was ranked 1st in 4 of 5 cases and 2nd in the other.
+- **Documentation and reviews combine well when the question asks for both.** "Is Datamosh
+  free?" cites the official answer and the user requests separately. When the question
+  only asks about users ("what problems do users report"), the model ignores the
+  documentation, even when it confirms the reviews.
+- **Faithfulness errors are about what sources say, not what they are about.** Retrieval
+  finds the right topic; the model then misreads polarity ("annoying"), merges different
+  complaints into one claim, or mixes up concepts (an effect listed as a format).
+- **Answers are faithful but incomplete**: key facts in the cited chunk are left out
+  (the premium requirement for HD video, the list of premium effects).
+- **Documentation retrieval always returns 3 chunks**, even when no chunk is relevant
+  (ads, password): three slots of irrelevant context.
+
+## Next experiments
+
+1. Prompt rule: "each sentence describes only what the sources cited in it say".
+2. A golden set of expected facts per question, to measure completeness (week 3).
+3. A similarity threshold, calibrated on this index, to drop documentation chunks below the
+   noise level.

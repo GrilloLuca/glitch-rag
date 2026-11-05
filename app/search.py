@@ -36,11 +36,11 @@ class ReviewSearch:
         self._bm25 = BM25Okapi([tokenize(r["text"]) for r in self.reviews])
 
     @classmethod
-    def load(cls, index_dir: Path) -> "ReviewSearch":
+    def load(cls, index_dir: Path, records: str = "reviews.jsonl") -> "ReviewSearch":
         matrix = np.load(index_dir / "embeddings.npy")
-        with (index_dir / "reviews.jsonl").open(encoding="utf-8") as f:
-            reviews = [json.loads(line) for line in f]
-        return cls(reviews, matrix)
+        with (index_dir / records).open(encoding="utf-8") as f:
+            items = [json.loads(line) for line in f]
+        return cls(items, matrix)
 
     def keyword(self, query: str, k: int) -> list[tuple[int, float]]:
         scores = self._bm25.get_scores(tokenize(query))
