@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     app_name: str = "Glitch RAG"
+    app_description: str = (
+        "Glitch!, un'app Android per applicare effetti glitch a foto e video"
+    )
     llm_base_url: str = "http://localhost:11434/v1"
     llm_model: str = "qwen2.5:1.5b"
     llm_api_key: SecretStr

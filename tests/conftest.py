@@ -5,6 +5,7 @@ from app.main import app, get_llm
 
 class FakeLLM:
     model = "fake-model"
+    app_description = "Test app, un'app di prova"
 
     def __init__(self) -> None:
         self.answer = "Risposta finta"

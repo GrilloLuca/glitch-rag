@@ -5,8 +5,8 @@ from openai import APIConnectionError, APIStatusError, APITimeoutError, AsyncOpe
 
 from app.config import Settings
 
-SYSTEM_PROMPT = (
-    "Sei l'assistente di Glitch!, un'app Android di editing foto e video. "
+CHAT_SYSTEM_PROMPT = (
+    "Sei l'assistente di {app}. "
     "Rispondi in modo conciso, nella lingua dell'utente. "
     "Se non conosci la risposta, dillo chiaramente."
 )
@@ -50,10 +50,18 @@ class LLMClient:
             max_retries=1,
         )
         self._embedding_model = settings.embedding_model
+        self._app_description = settings.app_description
+        self._chat_system_prompt = CHAT_SYSTEM_PROMPT.format(
+            app=settings.app_description
+        )
 
     @property
     def model(self) -> str:
         return self._model
+
+    @property
+    def app_description(self) -> str:
+        return self._app_description
 
     async def _complete(self, messages: list[dict], **kwargs) -> str:
         with translate_errors():
@@ -82,7 +90,7 @@ class LLMClient:
 
     def _chat_messages(self, message: str) -> list[dict]:
         return [
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": self._chat_system_prompt},
             {"role": "user", "content": message},
         ]
 

@@ -161,20 +161,22 @@ Google renames them, update `app/reviews_source.py`.
 
 `data/` is in `.gitignore`: reviews are user data and must never be committed.
 
-### 2. Describe your app in the prompts
+### 2. Describe your app
 
-The prompts describe the app the reviews are about. Replace the description with your
-own app's in:
+Set the app's name and a one-line description in `.env`:
 
-| File | What to change |
-|---|---|
-| `app/rag.py` | `RAG_SYSTEM_PROMPT`: one line describing your app |
-| `app/llm.py` | `SYSTEM_PROMPT` for `/chat` |
-| `app/analysis.py` | `SYSTEM_PROMPT` and the `Topic` labels, with a definition for each one that fits your app's features |
-| `app/config.py` / `.env` | `APP_NAME` |
+```bash
+APP_NAME="PhotoFix RAG"
+APP_DESCRIPTION="PhotoFix, an Android app for retouching photos"
+```
 
-The topic labels matter most: they decide what the analysis can count. Pick 5–8 areas
-users actually write about, plus `other`.
+The description is inserted into every prompt (chat, review analysis and RAG), so the
+model knows which app the reviews are about.
+
+Then adapt the **topic labels** to your app's features, in `app/analysis.py`: the
+`Topic` labels and `TOPIC_DEFINITIONS`, which define each label for the model. Change
+them together. Pick 5–8 areas users actually write about, plus `other`: the topics
+decide what the analysis can count.
 
 ### 3. Build the index
 
@@ -238,7 +240,8 @@ environment variables, and the API never returns the key.
 - [x] Embeddings, semantic and hybrid search, retrieval evaluation
 - [x] RAG endpoint with verified citations
 - [ ] Documentation (FAQ, store listing, release notes) as a second source, with heading-aware chunking
-- [ ] App description and topic labels in configuration instead of the code
+- [x] App description in configuration instead of the code
+- [ ] Topic labels in configuration
 - [ ] Larger golden set and automated evaluation of retrieval and answers
 - [ ] Deployment on Azure Container Apps with Managed Identity, Key Vault, monitoring and CI/CD
 - [ ] Agent with tools exposed over MCP (e.g. bug reports per feature), multi-agent orchestration and A2A
