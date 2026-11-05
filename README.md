@@ -1,31 +1,38 @@
-# Glitch RAG
+# App Review RAG
 
-A question-answering service over the real Play Store reviews of
-[Glitch!](https://play.google.com/store/apps/details?id=com.lucagrillo.ImageGlitcher),
-an Android app for glitch effects on photos and videos that I build and maintain.
+A question-answering service over the Google Play reviews of **your own Android app**.
 It retrieves the relevant reviews, answers **only** from them, and checks every cited
 source. Every design choice, from the prompt to the search strategy, is measured
 against hand-labelled data.
 
+Fork it, point it at your Play Console review exports, adapt the prompts to your app,
+and you get:
+
+- answers to questions like *"what problems do users report with the new editor?"*,
+  with citations you can verify;
+- structured analysis of each review: sentiment, topic, bug report, summary;
+- an evaluation loop to measure prompt and retrieval changes on your own data.
+
 > Work in progress: a learning project towards production RAG and agent systems on Azure.
 > Current state: local models on Ollama. See the [roadmap](#roadmap).
 
-## Why it matters: before and after
+## Why retrieval matters
 
-Same model (`qwen2.5:7b`), same question: *"How do I export a video in HD with Glitch!?"*
+Same model (`qwen2.5:7b`), same question about how to use a feature of the app:
 
 | Without retrieval (`/chat`) | With retrieval (`/ask`) |
 |---|---|
-| Seven confident steps through menus that do not exist ("Settings → Export → HD") | "The reviews do not explain how to export a video in HD; some users report export problems" |
+| Seven confident steps through menus that do not exist | "The reviews do not explain how to do this; some users report problems with it", with the sources |
 
-The model stopped inventing. It now says what its sources do and do not contain.
+Without sources the model invents. With sources and strict rules, it says what the
+sources do and do not contain.
 
 ## How it works
 
 ```mermaid
 flowchart LR
     subgraph Indexing["Indexing (once)"]
-        A[Play Console exports<br/>67,958 reviews] --> B[11,692 reviews with text]
+        A[Play Console<br/>review exports] --> B[Reviews with text]
         B --> C[bge-m3 embeddings<br/>1024 dimensions]
         C --> D[(Vector index<br/>+ BM25)]
     end
@@ -34,7 +41,7 @@ flowchart LR
         E --> F[Semantic or hybrid search<br/>top 5 reviews]
         D --> F
         F --> G[Prompt with reviews<br/>in delimited tags]
-        G --> H[qwen2.5:7b]
+        G --> H[LLM]
         H --> I[Answer + verified citations]
     end
 ```
@@ -49,14 +56,14 @@ flowchart LR
 4. **Verify**: every cited id is checked against the retrieved reviews. Unknown ids are
    returned separately as fabricated citations.
 
-## Results
+## Example results
 
-All numbers come from the evaluation logs in [`docs/`](docs/), judged against
-hand-labelled data.
+Measured on a real Android photo and video editing app: about 68,000 reviews, 11,692 of
+them with text, from 2013 to 2026, in many languages. Your numbers will differ: the
+point is that you can measure them. Logs in [`docs/`](docs/).
 
-### Review classification (structured output)
-
-20 reviews, 4 per star rating, labelled by hand ([golden set evaluation](docs/Run1/evaluation.md)).
+**Review classification** (20 reviews, 4 per star rating, labelled by hand,
+[details](docs/Run1/evaluation.md)):
 
 | Field | qwen2.5:1.5b | qwen2.5:7b, initial prompt | qwen2.5:7b, best prompt |
 |---|---:|---:|---:|
@@ -65,31 +72,25 @@ hand-labelled data.
 | Bug report detection | 80% | **100%** | **100%** |
 | Invalid JSON | 0/20 | 0/20 | 0/20 |
 
-Six prompt runs, one change at a time; two changes were rejected after error analysis
-because they cost a missed bug report or brought no gain
+Six prompt runs, one change at a time; two were rejected after error analysis
 ([runs 2–6](docs/Run2/evaluation.md)). A repeat run with no changes gave identical
 results, so differences between runs come from the prompt, not from chance.
 
-### Retrieval
-
-Precision@5 on 7 queries in English and Italian ([details](docs/hybrid-search.md)).
+**Retrieval** (precision@5 on 7 queries in English and Italian,
+[details](docs/hybrid-search.md)):
 
 | Keyword (BM25) | Semantic | Hybrid (RRF) |
 |---:|---:|---:|
 | 60% | **94%** | 83% |
 
-Hybrid search did **not** beat semantic search on this data: the corpus is mostly
-English, so Italian function words are rare in it and get a high keyword weight.
-Semantic search is the default.
+Hybrid search did **not** beat semantic search on this data: the reviews are mostly in
+English, so function words of other languages are rare in them and get a high keyword
+weight. Semantic search is the default; measure both on your data.
 
-### RAG answers
-
-Six questions, retrieval and generation judged separately ([details](docs/rag.md)).
-
-- 0 fabricated citation ids.
-- 3 of 3 questions the reviews cannot answer were correctly declined.
-- Main open problem: incomplete synthesis. With good sources the model uses on average
-  2 of 5 relevant reviews.
+**RAG answers** (six questions, retrieval and generation judged separately,
+[details](docs/rag.md)): 0 fabricated citation ids; 3 of 3 unanswerable questions
+correctly declined; main open problem is incomplete synthesis, with on average 2 of 5
+relevant reviews used.
 
 ## API
 
@@ -107,7 +108,7 @@ Example:
 ```bash
 curl -s -X POST http://localhost:8000/ask \
   -H "Content-Type: application/json" \
-  -d '{"question": "What problems do users report with datamosh?", "mode": "semantic", "k": 5}'
+  -d '{"question": "What problems do users report when saving videos?", "mode": "semantic", "k": 5}'
 ```
 
 Errors from the model provider map to `503` (unreachable), `504` (timeout) and `502`
@@ -122,8 +123,8 @@ are sent as an SSE `error` event.
 - **Search**: numpy (exact cosine similarity), `rank-bm25`, reciprocal rank fusion
 - **Quality**: pytest with an injected fake model (no model calls in tests), Ruff
 
-The model provider sits behind one client class, so moving to Azure is a configuration
-change, not a code change.
+The model provider sits behind one client class: any OpenAI-compatible endpoint works by
+changing `LLM_BASE_URL`, `LLM_MODEL` and `LLM_API_KEY`.
 
 ## Getting started
 
@@ -137,32 +138,74 @@ cp .env.example .env
 
 ollama pull qwen2.5:7b
 ollama pull bge-m3
+
+uv run pytest                          # no model needed
+uv run fastapi dev app/main.py         # API on http://localhost:8000, docs at /docs
 ```
 
-Run the tests (no model needed):
+`/chat`, `/chat/stream` and `/reviews/analyze` work straight away. `/ask` needs a search
+index built from your reviews (next section).
 
-```bash
-uv run pytest
-```
+## Using your own app's reviews
 
-Start the API:
+### 1. Export the reviews
 
-```bash
-uv run fastapi dev app/main.py
-```
+In the Play Console: **Download reports → Reviews**, pick your app and the months you
+want, and save the CSV files in `data/reviews/` (one file per month, e.g.
+`reviews_<package>_202609.csv`). Older months can also be downloaded from the Google
+Cloud Storage bucket linked to your developer account.
 
-`/chat`, `/chat/stream` and `/reviews/analyze` work straight away. `/ask` needs a
-search index built from Play Console review exports, which are **not included** in
-this repository because they are user data. With exports of your own app in
-`data/reviews/`:
+The files are UTF-16 encoded. The columns used are `Review Text`, `Star Rating`,
+`Reviewer Language`, `App Version Name` and `Review Submit Millis Since Epoch`; if
+Google renames them, update `app/reviews_source.py`.
+
+`data/` is in `.gitignore`: reviews are user data and must never be committed.
+
+### 2. Describe your app in the prompts
+
+The prompts describe the app the reviews are about. Replace the description with your
+own app's in:
+
+| File | What to change |
+|---|---|
+| `app/rag.py` | `RAG_SYSTEM_PROMPT`: one line describing your app |
+| `app/llm.py` | `SYSTEM_PROMPT` for `/chat` |
+| `app/analysis.py` | `SYSTEM_PROMPT` and the `Topic` labels, with a definition for each one that fits your app's features |
+| `app/config.py` / `.env` | `APP_NAME` |
+
+The topic labels matter most: they decide what the analysis can count. Pick 5–8 areas
+users actually write about, plus `other`.
+
+### 3. Build the index
 
 ```bash
 uv run python -m scripts.build_index data/reviews
 ```
 
-Other scripts: `scripts.search` (compare keyword, semantic and hybrid search),
-`scripts.sample_reviews`, `scripts.run_analysis` and `scripts.evaluate` (the golden-set
-evaluation loop).
+This embeds every review once (about 5 minutes for 12,000 reviews on a laptop) and
+writes `data/index/`. Restart the API and `/ask` is ready. Reviews without any letter
+(".", emoji only) are excluded from search.
+
+Compare the search modes on your data:
+
+```bash
+uv run python -m scripts.search "crashes when saving" --mode all
+```
+
+### 4. Evaluate on your data
+
+The evaluation loop measures the review analysis against labels you write by hand:
+
+```bash
+uv run python -m scripts.sample_reviews data/reviews data/sample.jsonl     # 4 reviews per star rating
+cp data/sample.jsonl data/golden.jsonl
+# add expected_sentiment, expected_topic and expected_is_bug_report to every line of golden.jsonl
+LLM_MODEL=qwen2.5:7b uv run python -m scripts.run_analysis data/sample.jsonl run1
+uv run python -m scripts.evaluate data/golden.jsonl data/runs/run1_qwen2.5_7b.jsonl
+```
+
+Change one thing at a time (a prompt rule, a model), run again under a new run name,
+and compare. `run_analysis` refuses to overwrite an existing run.
 
 ## Project structure
 
@@ -178,14 +221,15 @@ app/
   reviews_source.py  reading Play Console exports
 scripts/             indexing, search, analysis and evaluation
 tests/               pytest suite with a fake model
-docs/                evaluation logs
+docs/                evaluation logs from the example app
 ```
 
 ## Data and privacy
 
-Reviews come from my own app's Play Console exports. They are never committed: the
-repository contains code, aggregate numbers and short anonymous excerpts in the
-evaluation notes only. No API keys or secrets are stored in the repository.
+Review exports, indexes, samples and golden sets live in `data/`, which is never
+committed. Keep the repository to code, aggregate numbers and, at most, short anonymous
+excerpts. No API keys or secrets are stored in the repository: configuration comes from
+environment variables, and the API never returns the key.
 
 ## Roadmap
 
@@ -193,7 +237,8 @@ evaluation notes only. No API keys or secrets are stored in the repository.
 - [x] Golden-set evaluation and prompt iterations
 - [x] Embeddings, semantic and hybrid search, retrieval evaluation
 - [x] RAG endpoint with verified citations
-- [ ] Documentation as a second source, with heading-aware chunking
+- [ ] Documentation (FAQ, store listing, release notes) as a second source, with heading-aware chunking
+- [ ] App description and topic labels in configuration instead of the code
 - [ ] Larger golden set and automated evaluation of retrieval and answers
 - [ ] Deployment on Azure Container Apps with Managed Identity, Key Vault, monitoring and CI/CD
-- [ ] Agent with tools exposed over MCP (e.g. bug reports per effect), multi-agent orchestration and A2A
+- [ ] Agent with tools exposed over MCP (e.g. bug reports per feature), multi-agent orchestration and A2A
