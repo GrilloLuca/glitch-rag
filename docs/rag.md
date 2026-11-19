@@ -217,3 +217,105 @@ differences were measurement errors, not model changes.
 2. A larger question set (week 3), with more opinion questions.
 3. Prompt rule: "each sentence describes only what the sources cited in it say",
    measured with this command.
+
+---
+
+# Run 4 – Week 3 baseline: 23 questions, rebuilt indexes, a second model (2026-11-19)
+
+## Rebuilt indexes
+
+Every index now records the embedding model, row count and dimensions in
+`index_meta.json`, written last by the build scripts. `ReviewSearch.load` refuses an
+index built with another model, or whose files do not match, and the API does not start
+on it (`app/index_meta.py`).
+
+Both indexes were rebuilt with a freshly downloaded `bge-m3`. On the 10 questions of
+Run 3 the 10 answers and the 10 lists of retrieved ids are identical to the week 2 run:
+the rebuild changed nothing.
+
+## The question set grows to 23
+
+| Category | Run 3 | Run 4 |
+|---|---:|---:|
+| `howto` | 5 | 12 |
+| `opinion` | 3 | 6 |
+| `unanswerable` | 2 | 5 |
+
+New how-to questions cover subscriptions, purchases, photo resolution, prices, cloud
+files and an effect's video support. Opinion facts were written from the retrieved
+reviews, not from the model's answers. One fact of Run 3 broke the rule on question
+words ("salv" in "quando salvo") and was replaced by the two real complaints, saving
+errors and freezes while editing. Two questions have no keyword facts because the right
+answer cannot be checked by keywords: "no" for "does Hacker work on video?", and "the
+reviews praise the effects in general, without naming one".
+
+`scripts/rescore_rag.py` re-scores a saved run against an edited question file in
+seconds, without calling the model.
+
+## Baseline: week 3 (`qwen2.5:7b`, 23 questions)
+
+| Metric | Result |
+|---|---:|
+| Doc hit@3 | 12/12 |
+| Cites expected doc | 12/12 |
+| Answered with citations | 18/18 |
+| Correct declines | 5/5 |
+| Facts included | 23/27 (85%) |
+| Invented citations | 0 |
+| Seconds per question | 49.7 |
+| Faithful answers (by hand) | 15/23; 2 partly, 6 not |
+
+Retrieval found the right documentation chunk for all 12 how-to questions, and the 3
+new unanswerable questions (app language, active users, web version) were declined.
+
+## Unfaithful answers that pass every automatic check
+
+- **Praised effects**: "reviews mainly praise Zalgo and Chromatic". The two cited
+  reviews say "I really like the effects" and "Effects are abundant": the effect names
+  are invented, and the citations are valid ids. **Citation verification checks that a
+  source was retrieved, not that it says what the sentence claims.**
+- **Photo resolution**: "with the free plan the highest resolution is HIGH". The FAQ
+  says free users get LOW only. Facts 2/2.
+- **Subscription price**: "the price is the same for the monthly and the yearly plan".
+  The FAQ says both plans unlock the same features. This one is caught: the fact
+  "country" is missing.
+- Minor: "sometimes crashes" became "often crashes" (VHS); "the app is generally
+  stable" from two reviews (stability, an aggregate question in disguise).
+
+## `qwen3:8b` on the 10 questions of Run 3
+
+`qwen3:8b` with thinking turned off (`LLM_REASONING_EFFORT=none`). With thinking on,
+it generated several hundred reasoning tokens per question at about 1.8 tokens/s, and
+half of the questions timed out at 180 s.
+
+| | `qwen2.5:7b` | `qwen3:8b` |
+|---|---:|---:|
+| Doc hit@3 | 5/5 | 5/5 |
+| Facts included (current facts) | 14/17 (82%) | 16/17 (94%) |
+| Correct declines (metric) | 2/2 | 0/2 |
+| Faithful answers (by hand) | 7/10 | 7/10 |
+| Seconds per question | 59 | 86 |
+
+Same number of faithful answers, different errors. `qwen3:8b` fixes two errors of the
+7B (ads read as "divided", Datamosh listed as a format) and lists all premium effects,
+but states an absence as a fact ("changing the password is not available in the app",
+citing an unrelated chunk) and cites five reviews to say that no review covers version
+4.1.13. That answer is a correct decline: the metric "decline = no citations" held for
+the 7B and breaks for a model that cites more. `qwen2.5:7b` stays the reference model.
+
+## Findings
+
+- **Keyword metrics now overstate quality.** Facts 85%, citations valid, retrieval
+  100%, but 6 of 23 answers are unfaithful. The gap is in what the answer claims about
+  its sources, which no keyword check can see.
+- **A metric tuned on one model can break on another**: the decline proxy.
+- **Questions that ask for a ranking get a ranking**, even from sources that cannot
+  support one ("mainly Zalgo and Chromatic"). Aggregate questions stay for the agent in
+  week 5.
+
+## Next
+
+1. An LLM judge that checks each claim against the cited sources and recognises a
+   decline from its content, validated against the manual labels of Runs 3 and 4.
+2. Then the prompt rule "each sentence says only what its cited sources say", measured
+   with the judge.

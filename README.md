@@ -87,22 +87,23 @@ Hybrid search did **not** beat semantic search on this data: the reviews are mos
 English, so function words of other languages are rare in them and get a high keyword
 weight. Semantic search is the default; measure both on your data.
 
-**RAG answers** (10 questions over reviews and documentation, automated with
-`scripts/eval_rag.py`, [details](docs/rag.md#run-3--automated-end-to-end-evaluation-2026-11-18)):
+**RAG answers** (23 questions over reviews and documentation, automated with
+`scripts/eval_rag.py`, [details](docs/rag.md#run-4--week-3-baseline-23-questions-rebuilt-indexes-a-second-model-2026-11-19)):
 
 | Metric | Result |
 |---|---:|
-| Right documentation chunk in the top 3 | 5/5 |
-| Answer cites that chunk | 5/5 |
-| Unanswerable questions correctly declined | 2/2 |
-| Expected facts included | 13/16 (81%) |
+| Right documentation chunk in the top 3 | 12/12 |
+| Answer cites that chunk | 12/12 |
+| Unanswerable questions correctly declined | 5/5 |
+| Expected facts included | 23/27 (85%) |
 | Fabricated citation ids | 0 |
-| Faithful answers (checked by hand) | 7/10 |
-| Seconds per question (7B on a laptop CPU) | ~53 |
+| Faithful answers (checked by hand) | 15/23 |
+| Seconds per question (7B on a laptop CPU) | ~50 |
 
-Retrieval is solved on this question set; generation is not. The open problems are
-omitted facts and answers that merge or misread their sources. Keyword checks see the
-first, not the second: faithfulness is still judged by hand.
+Retrieval is solved on this question set; generation is not. Every citation points to a
+retrieved source, yet some answers claim things those sources do not say, such as effect
+names that no cited review mentions. Keyword checks cannot see this, so faithfulness is
+still judged by hand; an LLM judge is next.
 
 ## API
 
@@ -238,6 +239,8 @@ uv run python -m scripts.eval_rag evals/rag_questions.jsonl run1
 
 It runs every question, prints retrieval, citation, decline and fact scores with the
 latency, and saves the full answers to `data/runs/` for a manual faithfulness check.
+After editing the expected facts, re-score a saved run without calling the model:
+`uv run python -m scripts.rescore_rag evals/rag_questions.jsonl data/runs/rag_run1_<model>.jsonl`.
 Keep alternatives out of the question's own words, and prefer stems and
 language-independent terms (numbers, formats, names).
 
@@ -279,6 +282,7 @@ environment variables, and the API never returns the key.
 - [x] App description in configuration instead of the code
 - [ ] Topic labels in configuration
 - [x] Automated end-to-end evaluation of retrieval, citations and expected facts
-- [ ] Larger question set and LLM-as-a-judge faithfulness
+- [x] Larger question set (23 questions) and index metadata checks
+- [ ] LLM-as-a-judge faithfulness
 - [ ] Deployment on Azure ([plan](docs/azure-plan.md)): Foundry models, Azure AI Search, Container Apps with Managed Identity, Key Vault, monitoring and CI/CD
 - [ ] Agent with tools exposed over MCP (e.g. bug reports per feature), multi-agent orchestration and A2A

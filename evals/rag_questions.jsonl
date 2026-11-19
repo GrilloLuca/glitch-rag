@@ -5,6 +5,19 @@
 {"id": "formats", "question": "Quali formati posso esportare?", "category": "howto", "expected_doc_ids": ["b70bb631683d"], "must_include": [["JPG"], ["MP4"], ["GIF"]]}
 {"id": "datamosh-problems", "question": "Quali problemi segnalano gli utenti con datamosh?", "category": "opinion", "expected_doc_ids": [], "must_include": [["pag", "pay", "premium"], ["error"], ["funzion"]]}
 {"id": "ads", "question": "Cosa pensano gli utenti della pubblicità?", "category": "opinion", "expected_doc_ids": [], "must_include": [["fastidi", "molest", "troppa", "troppe"]]}
-{"id": "freeze-on-save", "question": "L'app si blocca quando salvo un video, è un problema noto?", "category": "opinion", "expected_doc_ids": [], "must_include": [["salv"]]}
+{"id": "freeze-on-save", "question": "L'app si blocca quando salvo un video, è un problema noto?", "category": "opinion", "expected_doc_ids": [], "must_include": [["error"], ["edit", "modific"]]}
 {"id": "password", "question": "Come cambio la password del mio account?", "category": "unanswerable", "expected_doc_ids": [], "must_include": []}
 {"id": "version-4113", "question": "Cosa dicono gli utenti della versione 4.1.13?", "category": "unanswerable", "expected_doc_ids": [], "must_include": []}
+{"id": "cancel-subscription", "question": "Come disdico l'abbonamento?", "category": "howto", "expected_doc_ids": ["01a0f8ac36c8"], "must_include": [["Play"]]}
+{"id": "restore-purchases", "question": "Ho cambiato telefono, come recupero i miei acquisti?", "category": "howto", "expected_doc_ids": ["ee85382646bd"], "must_include": [["Restore", "Ripristina"], ["Google"]]}
+{"id": "old-purchase", "question": "Ho comprato la versione completa anni fa, devo abbonarmi?", "category": "howto", "expected_doc_ids": ["7d17b58415b3"], "must_include": [["valid"]]}
+{"id": "photo-resolution", "question": "Come salvo le foto alla massima qualità?", "category": "howto", "expected_doc_ids": ["cb8883b075d2"], "must_include": [["FULL"], ["premium"]]}
+{"id": "subscription-price", "question": "Quanto costa l'abbonamento annuale?", "category": "howto", "expected_doc_ids": ["48cc3749bceb"], "must_include": [["paes", "country"]]}
+{"id": "cloud-file", "question": "Perché non riesco ad aprire un video da Google Photos?", "category": "howto", "expected_doc_ids": ["36093dd1593e"], "must_include": [["dispositivo", "device", "telefono"]]}
+{"id": "hacker-video", "question": "L'effetto Hacker funziona sui video?", "category": "howto", "expected_doc_ids": ["a25614abb351"], "must_include": []}
+{"id": "app-language", "question": "Come cambio la lingua dell'app?", "category": "unanswerable", "expected_doc_ids": [], "must_include": []}
+{"id": "active-users", "question": "Quanti utenti attivi ha Glitch!?", "category": "unanswerable", "expected_doc_ids": [], "must_include": []}
+{"id": "web-version", "question": "Esiste una versione web di Glitch!?", "category": "unanswerable", "expected_doc_ids": [], "must_include": []}
+{"id": "best-effects", "question": "Quali effetti vengono lodati nelle recensioni?", "category": "opinion", "expected_doc_ids": [], "must_include": []}
+{"id": "vhs-bug", "question": "che problemi ha l'effetto VHS?", "category": "opinion", "expected_doc_ids": [], "must_include": [["salva"]]}
+{"id": "app-stability", "question": "l'applicazione è stabile?", "category": "opinion", "expected_doc_ids": [], "must_include": [["lag", "rallent"]]}
