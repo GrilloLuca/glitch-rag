@@ -1,0 +1,10 @@
+{"id": "export-hd", "question": "Come esporto un video in HD con Glitch!?", "category": "howto", "expected_doc_ids": ["e388a88fdb23"], "must_include": [["MP4"], ["1280"], ["premium"]]}
+{"id": "save-location", "question": "Dove vengono salvati i video?", "category": "howto", "expected_doc_ids": ["e660967f4451"], "must_include": [["Movies/ImageGlitcher"]]}
+{"id": "premium-content", "question": "Cosa include la versione premium?", "category": "howto", "expected_doc_ids": ["3f6412fb8ea4"], "must_include": [["effett", "effect"], ["risoluz", "resolution", "MID", "FULL"], ["Datamosh", "video", "animaz", "animation"]]}
+{"id": "datamosh-free", "question": "Datamosh è gratuito?", "category": "howto", "expected_doc_ids": ["c7c55e09df0b", "3f6412fb8ea4"], "must_include": [["premium"]]}
+{"id": "formats", "question": "Quali formati posso esportare?", "category": "howto", "expected_doc_ids": ["b70bb631683d"], "must_include": [["JPG"], ["MP4"], ["GIF"]]}
+{"id": "datamosh-problems", "question": "Quali problemi segnalano gli utenti con datamosh?", "category": "opinion", "expected_doc_ids": [], "must_include": [["pag", "pay", "premium"], ["error"], ["funzion"]]}
+{"id": "ads", "question": "Cosa pensano gli utenti della pubblicità?", "category": "opinion", "expected_doc_ids": [], "must_include": [["fastidi", "molest", "troppa", "troppe"]]}
+{"id": "freeze-on-save", "question": "L'app si blocca quando salvo un video, è un problema noto?", "category": "opinion", "expected_doc_ids": [], "must_include": [["salv"]]}
+{"id": "password", "question": "Come cambio la password del mio account?", "category": "unanswerable", "expected_doc_ids": [], "must_include": []}
+{"id": "version-4113", "question": "Cosa dicono gli utenti della versione 4.1.13?", "category": "unanswerable", "expected_doc_ids": [], "must_include": []}

@@ -125,3 +125,95 @@ the reviews. The prompt separates `<documentation>` (official: how the app works
 2. A golden set of expected facts per question, to measure completeness (week 3).
 3. A similarity threshold, calibrated on this index, to drop documentation chunks below the
    noise level.
+
+---
+
+# Run 3 – Automated end-to-end evaluation (2026-11-18)
+
+The manual evaluation of Run 2 is now a command. `evals/rag_questions.jsonl` holds the
+10 questions with their category, the documentation chunks that should be retrieved and
+the facts the answer must contain. `scripts/eval_rag.py` runs every question through the
+same `answer_question` used by `/ask` (no HTTP server), scores it with the pure function
+`score_answer` (`app/rag_eval.py`) and saves question, full response, score and latency
+to `data/runs/rag_<run>_<model>.jsonl`.
+
+```bash
+uv run python -m scripts.eval_rag evals/rag_questions.jsonl week2
+```
+
+- **Retrieval**: semantic, top 3 documentation chunks + top 5 reviews (as in Run 2).
+- **Generation**: `qwen2.5:7b`, `temperature=0`, local on Ollama, CPU only (Intel Mac).
+
+## Metrics
+
+| Metric | What it checks |
+|---|---|
+| Doc hit@3 | An expected documentation chunk is among the 3 retrieved (how-to questions) |
+| Cites expected doc | The answer cites that chunk |
+| Answered with citations | Answerable questions cite at least one source |
+| Correct declines | Unanswerable questions cite nothing |
+| Facts included | Expected facts found in the answer: each fact is a list of alternatives, case-insensitive substring match |
+| Invented citations | Cited ids that were not retrieved |
+
+A metric that does not apply to a question (doc hit for an opinion question, decline for
+an answerable one) is `None` and is left out of the totals.
+
+## Baseline: week 2
+
+| Metric | Result |
+|---|---:|
+| Doc hit@3 | 5/5 (100%) |
+| Cites expected doc | 5/5 (100%) |
+| Answered with citations | 8/8 (100%) |
+| Correct declines | 2/2 (100%) |
+| Facts included | 13/16 (81%) |
+| Invented citations | 0 |
+| Errors | 0 |
+| Seconds per question | 59.2 on average; 52.7 without the first question (117.6 s, model loading) |
+
+The three missing facts are all real omissions:
+
+- **Export in HD**: no mention that Datamosh and Video are premium (seen by hand in Run 2).
+- **Premium content**: no premium effect named.
+- **App freezes when saving**: the answer cites three reviews (a freeze while *editing*,
+  videos *not saved*, videos *saved with errors*), merges them into "yes, it is a known
+  problem" and keeps only the one that is not about saving.
+
+Answers are identical word for word across three runs at `temperature=0`; only latency
+changes. Retrieval and citation numbers match the manual Run 2.
+
+## What the automatic metrics cannot see
+
+Keyword facts measure **presence, not correctness**. Two answers pass every automatic
+check and are still not faithful:
+
+- **Ads**: "users are divided" when every retrieved review complains, yet the fact
+  "annoying" is found.
+- **Formats**: "MP4, GIF or Datamosh" lists an effect as a format, yet JPG, MP4 and GIF
+  are all found.
+
+Manual faithfulness is unchanged from Run 2: 7/10. Automating it (a second model as a
+judge, checked against these manual labels) is the next step.
+
+## Lessons on writing expected facts
+
+The first two versions of the facts scored 10/14 and 11/13 on the same answers: the
+differences were measurement errors, not model changes.
+
+- **No alternative may appear in the question.** "video" in the facts for "How do I
+  export a video in HD?" is always found, so the fact measures nothing.
+- **Use stems, not words.** "risoluzione" does not match "risoluzioni"; "risoluz" matches
+  both.
+- **Match the answer's language, or use language-independent terms.** English keywords
+  ("effects") against Italian answers ("effetti") fail on correct answers. Numbers, file
+  formats, paths and effect names work in every language.
+- **An alternative counts as much as the others.** `["animation", "datamosh", "premium"]`
+  is satisfied by the word "Datamosh" alone, so the premium omission disappears from the
+  numbers. A fact that must be checked has to stand alone.
+
+## Next experiments
+
+1. LLM-as-a-judge faithfulness, validated against the manual labels of Runs 2 and 3.
+2. A larger question set (week 3), with more opinion questions.
+3. Prompt rule: "each sentence describes only what the sources cited in it say",
+   measured with this command.

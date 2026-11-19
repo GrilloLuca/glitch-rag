@@ -87,10 +87,22 @@ Hybrid search did **not** beat semantic search on this data: the reviews are mos
 English, so function words of other languages are rare in them and get a high keyword
 weight. Semantic search is the default; measure both on your data.
 
-**RAG answers** (six questions, retrieval and generation judged separately,
-[details](docs/rag.md)): 0 fabricated citation ids; 3 of 3 unanswerable questions
-correctly declined; main open problem is incomplete synthesis, with on average 2 of 5
-relevant reviews used.
+**RAG answers** (10 questions over reviews and documentation, automated with
+`scripts/eval_rag.py`, [details](docs/rag.md#run-3--automated-end-to-end-evaluation-2026-11-18)):
+
+| Metric | Result |
+|---|---:|
+| Right documentation chunk in the top 3 | 5/5 |
+| Answer cites that chunk | 5/5 |
+| Unanswerable questions correctly declined | 2/2 |
+| Expected facts included | 13/16 (81%) |
+| Fabricated citation ids | 0 |
+| Faithful answers (checked by hand) | 7/10 |
+| Seconds per question (7B on a laptop CPU) | ~53 |
+
+Retrieval is solved on this question set; generation is not. The open problems are
+omitted facts and answers that merge or misread their sources. Keyword checks see the
+first, not the second: faithfulness is still judged by hand.
 
 ## API
 
@@ -209,6 +221,26 @@ uv run python -m scripts.evaluate data/golden.jsonl data/runs/run1_qwen2.5_7b.js
 Change one thing at a time (a prompt rule, a model), run again under a new run name,
 and compare. `run_analysis` refuses to overwrite an existing run.
 
+The RAG answers have their own evaluation. Write your questions in a JSONL file like
+[`evals/rag_questions.jsonl`](evals/rag_questions.jsonl): a category (`howto`,
+`opinion`, `unanswerable`), the documentation chunk ids that should be retrieved, and
+the facts the answer must contain. Each fact is a list of alternatives, any one of
+which counts:
+
+```json
+{"id": "export-hd", "question": "How do I export a video in HD?", "category": "howto",
+ "expected_doc_ids": ["e388a88fdb23"], "must_include": [["MP4"], ["1280"], ["premium", "paid"]]}
+```
+
+```bash
+uv run python -m scripts.eval_rag evals/rag_questions.jsonl run1
+```
+
+It runs every question, prints retrieval, citation, decline and fact scores with the
+latency, and saves the full answers to `data/runs/` for a manual faithfulness check.
+Keep alternatives out of the question's own words, and prefer stems and
+language-independent terms (numbers, formats, names).
+
 ## Project structure
 
 ```
@@ -218,9 +250,13 @@ app/
   llm.py             model client: chat, streaming, JSON output, embeddings
   analysis.py        structured review analysis
   rag.py             retrieval-augmented answers and citation checks
+  rag_eval.py        scoring of RAG answers against expected docs and facts
+  chunking.py        heading-aware chunking of the documentation
   search.py          keyword, semantic and hybrid search
   vector_index.py    normalisation and top-k by cosine similarity
   reviews_source.py  reading Play Console exports
+knowledge/           documentation used as a second source (FAQ, features)
+evals/               RAG evaluation questions with expected docs and facts
 scripts/             indexing, search, analysis and evaluation
 tests/               pytest suite with a fake model
 docs/                evaluation logs from the example app
@@ -239,9 +275,10 @@ environment variables, and the API never returns the key.
 - [x] Golden-set evaluation and prompt iterations
 - [x] Embeddings, semantic and hybrid search, retrieval evaluation
 - [x] RAG endpoint with verified citations
-- [ ] Documentation (FAQ, store listing, release notes) as a second source, with heading-aware chunking
+- [x] Documentation (FAQ, feature list, store listing) as a second source, with heading-aware chunking
 - [x] App description in configuration instead of the code
 - [ ] Topic labels in configuration
-- [ ] Larger golden set and automated evaluation of retrieval and answers
-- [ ] Deployment on Azure Container Apps with Managed Identity, Key Vault, monitoring and CI/CD
+- [x] Automated end-to-end evaluation of retrieval, citations and expected facts
+- [ ] Larger question set and LLM-as-a-judge faithfulness
+- [ ] Deployment on Azure ([plan](docs/azure-plan.md)): Foundry models, Azure AI Search, Container Apps with Managed Identity, Key Vault, monitoring and CI/CD
 - [ ] Agent with tools exposed over MCP (e.g. bug reports per feature), multi-agent orchestration and A2A
