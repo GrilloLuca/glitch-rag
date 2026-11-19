@@ -25,12 +25,12 @@ async def lifespan(app: FastAPI):
     settings = get_settings()
     app.state.llm = LLMClient(settings)
     try:
-        app.state.search = ReviewSearch.load(settings.index_dir)
+        app.state.search = ReviewSearch.load(settings.index_dir, settings.embedding_model)
     except FileNotFoundError:
         app.state.search = None
     try:
         app.state.docs_search = ReviewSearch.load(
-            settings.docs_index_dir, records="chunks.jsonl"
+            settings.docs_index_dir, settings.embedding_model, records="chunks.jsonl"
         )
     except FileNotFoundError:
         app.state.docs_search = None

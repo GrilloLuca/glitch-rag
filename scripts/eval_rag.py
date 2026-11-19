@@ -28,9 +28,11 @@ async def main(questions_file: Path, run_name: str, mode: str, force: bool) -> N
         sys.exit(f"{dst} esiste già: scegli un altro nome o usa --force.")
 
     questions = load_questions(questions_file)
-    search = ReviewSearch.load(settings.index_dir)
+    search = ReviewSearch.load(settings.index_dir, settings.embedding_model)
     try:
-        docs = ReviewSearch.load(settings.docs_index_dir, records="chunks.jsonl")
+        docs = ReviewSearch.load(
+            settings.docs_index_dir, settings.embedding_model, records="chunks.jsonl"
+        )
     except FileNotFoundError:
         docs = None
         print("Attenzione: indice della documentazione assente")

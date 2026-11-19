@@ -22,7 +22,8 @@ class Settings(BaseSettings):
     embedding_batch_size: int = Field(default=32, gt=0)
     index_dir: Path = Path("data/index")
     docs_index_dir: Path = Path("data/index_docs")
-    
+    llm_reasoning_effort: str | None = None
+
 
 @lru_cache
 def get_settings() -> Settings:

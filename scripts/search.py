@@ -23,7 +23,7 @@ async def embed_query(query: str) -> np.ndarray:
 
 
 async def main(query: str, k: int, mode: str) -> None:
-    search = ReviewSearch.load(INDEX_DIR)
+    search = ReviewSearch.load(INDEX_DIR, get_settings().embedding_model)
     vector = await embed_query(query)
     modes = MODES if mode == "all" else [mode]
 

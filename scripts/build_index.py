@@ -8,6 +8,7 @@ from pathlib import Path
 import numpy as np
 
 from app.config import get_settings
+from app.index_meta import write_index_meta
 from app.llm import LLMClient
 from app.reviews_source import load_reviews
 from app.vector_index import normalize
@@ -38,6 +39,9 @@ async def main(src_dir: Path) -> None:
     with (INDEX_DIR / "reviews.jsonl").open("w", encoding="utf-8") as out:
         for r in reviews:
             out.write(json.dumps(asdict(r), ensure_ascii=False) + "\n")
+
+    #write meta index for model\index consistency
+    write_index_meta(INDEX_DIR, settings.embedding_model, count=matrix.shape[0], dimensions=matrix.shape[1])
 
     elapsed = time.perf_counter() - started
     print(

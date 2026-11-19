@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 from rank_bm25 import BM25Okapi
 
+from app.index_meta import IndexMismatchError, check_index_meta
 from app.vector_index import top_k
 
 TOKEN_RE = re.compile(r"\w+(?:\.\w+)*")
@@ -36,10 +37,15 @@ class ReviewSearch:
         self._bm25 = BM25Okapi([tokenize(r["text"]) for r in self.reviews])
 
     @classmethod
-    def load(cls, index_dir: Path, records: str = "reviews.jsonl") -> "ReviewSearch":
+    def load(cls, index_dir: Path, embedding_model: str, records: str = "reviews.jsonl") -> "ReviewSearch":
         matrix = np.load(index_dir / "embeddings.npy")
         with (index_dir / records).open(encoding="utf-8") as f:
             items = [json.loads(line) for line in f]
+        if len(items) != matrix.shape[0]:
+            raise IndexMismatchError(
+                f"{index_dir}: {len(items)} record ma {matrix.shape[0]} vettori."
+            )
+        check_index_meta(index_dir, embedding_model, count=matrix.shape[0], dimensions=matrix.shape[1])
         return cls(items, matrix)
 
     def keyword(self, query: str, k: int) -> list[tuple[int, float]]:

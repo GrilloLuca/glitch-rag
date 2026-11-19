@@ -43,6 +43,11 @@ def translate_errors():
 class LLMClient:
     def __init__(self, settings: Settings) -> None:
         self._model = settings.llm_model
+        self._extra_body = (
+            {"reasoning_effort": settings.llm_reasoning_effort}
+            if settings.llm_reasoning_effort
+            else None
+        )
         self._client = AsyncOpenAI(
             base_url=settings.llm_base_url,
             api_key=settings.llm_api_key.get_secret_value(),
@@ -66,7 +71,7 @@ class LLMClient:
     async def _complete(self, messages: list[dict], **kwargs) -> str:
         with translate_errors():
             response = await self._client.chat.completions.create(
-                model=self._model, messages=messages, **kwargs
+                model=self._model, messages=messages, extra_body=self._extra_body, **kwargs
             )
         return response.choices[0].message.content or ""
 
@@ -99,6 +104,7 @@ class LLMClient:
             stream = await self._client.chat.completions.create(
                 model=self._model,
                 messages=self._chat_messages(message),
+                extra_body=self._extra_body,
                 temperature=0.3,
                 stream=True,
             )

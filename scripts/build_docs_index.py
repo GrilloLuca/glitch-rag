@@ -8,6 +8,7 @@ import numpy as np
 
 from app.chunking import chunk_markdown
 from app.config import get_settings
+from app.index_meta import write_index_meta
 from app.llm import LLMClient
 from app.vector_index import normalize
 
@@ -31,10 +32,15 @@ async def main(src_dir: Path) -> None:
 
     out = settings.docs_index_dir
     out.mkdir(parents=True, exist_ok=True)
-    np.save(out / "embeddings.npy", normalize(np.array(vectors, dtype=np.float32)))
+    matrix = normalize(np.array(vectors, dtype=np.float32))
+    np.save(out / "embeddings.npy", matrix)
+
     with (out / "chunks.jsonl").open("w", encoding="utf-8") as f:
         for c in chunks:
             f.write(json.dumps(asdict(c), ensure_ascii=False) + "\n")
+
+    write_index_meta(out, settings.embedding_model, count=matrix.shape[0], dimensions=matrix.shape[1])
+
     print(f"Indice salvato in {out}")
 
 
